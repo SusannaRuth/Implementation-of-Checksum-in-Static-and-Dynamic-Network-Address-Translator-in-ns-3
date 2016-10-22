@@ -25,6 +25,8 @@
 #include "ns3/socket.h"
 #include "ns3/callback.h"
 #include "ns3/ipv4-address.h"
+#include "ns3/ip-l4-protocol.h"
+
 #include "ipv4-route.h"
 #include "ipv4-interface-address.h"
 
@@ -36,6 +38,7 @@ class Packet;
 class Ipv4RoutingProtocol;
 class IpL4Protocol;
 class Ipv4Header;
+class Ipv4Netfilter;
 
 /**
  * \ingroup internet
@@ -103,6 +106,24 @@ public:
   virtual Ptr<Ipv4RoutingProtocol> GetRoutingProtocol (void) const = 0;
 
   /**
+   * \brief Add a netfilter object to be used by this IPv4 stack
+   *
+   * This call will replace any previously added Ipv4Netfilter object.
+   * 
+   * \param netfilter smart pointer to Ipv4Netfilter object
+   */
+  virtual void SetNetfilter (Ptr<Ipv4Netfilter> netfilter) = 0;
+
+  /**
+   * \brief Get the Ipv4Netfilter object used by this Ipv4 stack
+   * 
+   * \returns smart pointer to Ipv4Netfilter object, or null pointer if none
+   */
+  virtual Ptr<Ipv4Netfilter> GetNetfilter (void) const = 0;
+
+
+
+  /**
    * \param device device to add to the list of Ipv4 interfaces
    *        which can be used as output interfaces during packet forwarding.
    * \returns the index of the Ipv4 interface added.
@@ -111,6 +132,7 @@ public:
    * to disable it, you can invoke Ipv4::SetDown which will
    * make sure that it is never used during packet forwarding.
    */
+
   virtual uint32_t AddInterface (Ptr<NetDevice> device) = 0;
 
   /**

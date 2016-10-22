@@ -51,6 +51,7 @@ class Socket;
 class Ipv4RawSocketImpl;
 class IpL4Protocol;
 class Icmpv4L4Protocol;
+class Ipv4Netfilter;
 
 
 /**
@@ -100,7 +101,8 @@ public:
     DROP_BAD_CHECKSUM,   /**< Bad checksum */
     DROP_INTERFACE_DOWN,   /**< Interface is down so can not send packet */
     DROP_ROUTE_ERROR,   /**< Route error */
-    DROP_FRAGMENT_TIMEOUT /**< Fragment timeout exceeded */
+    DROP_FRAGMENT_TIMEOUT, /**< Fragment timeout exceeded */
+    DROP_NF_DROP
   };
 
   /**
@@ -113,6 +115,8 @@ public:
 
   void SetRoutingProtocol (Ptr<Ipv4RoutingProtocol> routingProtocol);
   Ptr<Ipv4RoutingProtocol> GetRoutingProtocol (void) const;
+ void SetNetfilter (Ptr<Ipv4Netfilter> netfilter);
+  Ptr<Ipv4Netfilter> GetNetfilter (void) const;
 
   Ptr<Socket> CreateRawSocket (void);
   void DeleteRawSocket (Ptr<Socket> socket);
@@ -392,7 +396,8 @@ private:
    * \brief Get ICMPv4 protocol.
    * \return Icmpv4L4Protocol pointer
    */
-  Ptr<Icmpv4L4Protocol> GetIcmp (void) const;
+Ptr<Icmpv4L4Protocol> GetIcmp (void) const;
+  
 
   /**
    * \brief Check if an IPv4 address is unicast.
@@ -472,7 +477,7 @@ private:
   TracedCallback<const Ipv4Header &, Ptr<const Packet>, DropReason, Ptr<Ipv4>, uint32_t> m_dropTrace;
 
   Ptr<Ipv4RoutingProtocol> m_routingProtocol; //!< Routing protocol associated with the stack
-
+Ptr<Ipv4Netfilter> m_netfilter;
   SocketList m_sockets; //!< List of IPv4 raw sockets.
 
   /**

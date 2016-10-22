@@ -86,7 +86,11 @@ main (int argc, char *argv[])
 {
   LogComponentEnable ("UdpEchoClientApplication", LOG_LEVEL_INFO);
   LogComponentEnable ("UdpEchoServerApplication", LOG_LEVEL_INFO);
+  LogComponentEnable ("Ipv4L3Protocol", LOG_LEVEL_INFO);
+  LogComponentEnable ("Ipv4Header", LOG_LEVEL_INFO);
+  LogComponentEnable ("Ipv4Nat", LOG_LEVEL_INFO);
 
+  GlobalValue::Bind("ChecksumEnabled",BooleanValue(true));
 
   // Desired topology:  n0 <----> n1 <-----> n2
   // n0 and n1 in first container, n1 and n2 in second
@@ -186,7 +190,7 @@ main (int argc, char *argv[])
 
   // Prepare to run the simulation
   Ipv4GlobalRoutingHelper::PopulateRoutingTables ();
-  pointToPoint.EnablePcapAll ("Static-Nat", false);
+  pointToPoint.EnablePcapAll ("Static-Nat", true);
 
   first.Get (1)->GetObject<Ipv4> ()-> TraceConnectWithoutContext ("Drop", MakeCallback(&DropTrace));
 

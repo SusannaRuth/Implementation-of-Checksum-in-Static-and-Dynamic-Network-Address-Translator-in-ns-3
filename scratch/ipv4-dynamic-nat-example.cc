@@ -40,6 +40,7 @@ NS_LOG_COMPONENT_DEFINE ("NetfilterExample");
 int
 main (int argc, char *argv[])
 {
+  GlobalValue::Bind("ChecksumEnabled",BooleanValue(true));
   LogComponentEnable ("UdpEchoClientApplication", LOG_LEVEL_INFO);
   LogComponentEnable ("UdpEchoServerApplication", LOG_LEVEL_INFO);
 
@@ -161,8 +162,8 @@ main (int argc, char *argv[])
 
   // Prepare to run the simulation
   Ipv4GlobalRoutingHelper::PopulateRoutingTables ();
-  pointToPoint.EnablePcapAll ("ipv4-nat", false);
-
+  pointToPoint.EnablePcapAll ("ipv4-nat", true);
+  csma.EnablePcapAll("dynamic-nat",true);
   Simulator::Run ();
   // Now print them out
   Ptr<OutputStreamWrapper> natStream = Create<OutputStreamWrapper> ("nat.rules", std::ios::out);
