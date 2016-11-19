@@ -198,6 +198,10 @@ Ipv4Netfilter::NetfilterConntrackGetTuple (Ptr<Packet> packet, uint16_t l3Number
   //tuple->Set
   Ipv4Header ipHeader;
   NS_LOG_DEBUG (" :: Remove Ipv4 Header :: ");
+  if (Node::ChecksumEnabled ())
+    {
+      ipHeader.EnableChecksum ();
+    }
   packet->RemoveHeader (ipHeader);
 
   tuple.SetDirection (IP_CT_DIR_ORIGINAL);
@@ -645,11 +649,15 @@ Ipv4Netfilter::EnableNat ()
 uint32_t
 Ipv4Netfilter::NetfilterNatPacket (Hooks_t hookNumber, Ptr<Packet> p)
 {
+  
   NS_LOG_FUNCTION ( this << p );
   Ipv4Header ipHeader;
   uint16_t dstPort; //, srcPort;
   Ipv4Address dstAddress, srcAddress;
-
+  if (Node::ChecksumEnabled ())
+    {
+      ipHeader.EnableChecksum ();
+    }
   p->RemoveHeader (ipHeader);
 
   uint16_t protocol = ipHeader.GetProtocol ();
@@ -663,7 +671,10 @@ Ipv4Netfilter::NetfilterNatPacket (Hooks_t hookNumber, Ptr<Packet> p)
       if (protocol == IPPROTO_TCP)
         {
           TcpHeader tcpHeader;
-
+          if (Node::ChecksumEnabled ())
+            {
+              tcpHeader.EnableChecksums ();
+            }
           p->RemoveHeader (tcpHeader);
 
           tcpHeader.SetSourcePort (mapped.GetSourcePort ());
@@ -674,7 +685,10 @@ Ipv4Netfilter::NetfilterNatPacket (Hooks_t hookNumber, Ptr<Packet> p)
       else
         {
           UdpHeader udpHeader;
-
+          if (Node::ChecksumEnabled ())
+            {
+              udpHeader.EnableChecksums ();
+            }
           p->RemoveHeader (udpHeader);
 
           udpHeader.SetSourcePort (mapped.GetSourcePort ());
@@ -731,7 +745,10 @@ Ipv4Netfilter::NetfilterNatPacket (Hooks_t hookNumber, Ptr<Packet> p)
       if (protocol == IPPROTO_TCP)
         {
           TcpHeader tcpHeader;
-
+          if (Node::ChecksumEnabled ())
+           {
+             tcpHeader.EnableChecksums ();
+           }
           p->RemoveHeader (tcpHeader);
 
           tcpHeader.SetDestinationPort (dstPort);
@@ -742,7 +759,10 @@ Ipv4Netfilter::NetfilterNatPacket (Hooks_t hookNumber, Ptr<Packet> p)
       else
         {
           UdpHeader udpHeader;
-
+          if (Node::ChecksumEnabled ())
+            {
+              udpHeader.EnableChecksums ();
+            }
           p->RemoveHeader (udpHeader);
 
           udpHeader.SetDestinationPort (dstPort);

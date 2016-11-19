@@ -488,7 +488,7 @@ Ipv4L3Protocol::Receive ( Ptr<NetDevice> device, Ptr<const Packet> p, uint16_t p
                           const Address &to, NetDevice::PacketType packetType)
 {
 
-
+  NS_LOG_LOGIC("L3 Receive....................");
   NS_LOG_FUNCTION (this << device << p << protocol << from << to << packetType);
 
   NS_LOG_LOGIC ("Packet from " << from << " received on node " << 
@@ -499,15 +499,20 @@ Ipv4L3Protocol::Receive ( Ptr<NetDevice> device, Ptr<const Packet> p, uint16_t p
 
  if (m_netfilter != 0)
     {
+      
       NS_LOG_DEBUG ("NF_INET_PRE_ROUTING Hook");
 
       Verdicts_t verdict = (Verdicts_t) m_netfilter->ProcessHook(PF_INET, NF_INET_PRE_ROUTING, packet, device, 0);
-
+      
       if (verdict == NF_DROP)
         {
 
           NS_LOG_DEBUG ("NF_INET_PRE_ROUTING packet not accepted");
-Ipv4Header ipHeader;
+          Ipv4Header ipHeader;
+          if (Node::ChecksumEnabled ())
+            {
+              ipHeader.EnableChecksum ();
+            }
           packet->RemoveHeader (ipHeader);
           int32_t interfacePkt = GetInterfaceForDevice (device);
           m_dropTrace (ipHeader, packet, DROP_NF_DROP, m_node->GetObject<Ipv4> (), interfacePkt);
@@ -530,8 +535,13 @@ Ipv4Header ipHeader;
             }
           else
             {
+              std::cout<<"\nin``````````````````````````````";
               NS_LOG_LOGIC ("Dropping received packet -- interface is down");
               Ipv4Header ipHeader;
+              if (Node::ChecksumEnabled ())
+                {
+                  ipHeader.EnableChecksum ();
+                }
               packet->RemoveHeader (ipHeader);
               m_dropTrace (ipHeader, packet, DROP_INTERFACE_DOWN, m_node->GetObject<Ipv4> (), interface);
               return;
@@ -558,14 +568,15 @@ Ipv4Header ipHeader;
     {
       NS_LOG_LOGIC ("Dropping received packet -- checksum not ok");
 
-      //std::cout<<"Drop in receive method";
+      std::cout<<"\nDrop in receive method--------------------------";
 
       m_dropTrace (ipHeader, packet, DROP_BAD_CHECKSUM, m_node->GetObject<Ipv4> (), interface);
       return;
     }
 
   for (SocketList::iterator i = m_sockets.begin (); i != m_sockets.end (); ++i)
-    {
+    { 
+      std::cout<<"\niterator00000000000000000000000";
       NS_LOG_LOGIC ("Forwarding to raw socket"); 
       Ptr<Ipv4RawSocketImpl> socket = *i;
       socket->ForwardUp (packet, ipHeader, ipv4Interface);
@@ -665,7 +676,7 @@ Ipv4L3Protocol::Send (Ptr<Packet> packet,
   SocketIpTtlTag tag;
   bool found = packet->RemovePacketTag (tag);
 
-Ptr<NetDevice> device;
+  Ptr<NetDevice> device;
   
   if (route) 
   {
@@ -707,10 +718,10 @@ Ptr<NetDevice> device;
           NS_ASSERT (packetCopy->GetSize () <= outInterface->GetDevice ()->GetMtu ());
 
           m_sendOutgoingTrace (ipHeader, packetCopy, ifaceIndex);
-          //if (Node::ChecksumEnabled ())
-            //    {
-              //    ipHeader.EnableChecksum ();
-                //}
+          if (Node::ChecksumEnabled ())
+            {
+              ipHeader.EnableChecksum ();
+            }
           packetCopy->AddHeader (ipHeader);
 
    if (m_netfilter != 0)
@@ -764,10 +775,10 @@ Ptr<NetDevice> device;
               ipHeader = BuildHeader (source, destination, protocol, packet->GetSize (), ttl, tos, mayFragment);
               Ptr<Packet> packetCopy = packet->Copy ();
               m_sendOutgoingTrace (ipHeader, packetCopy, ifaceIndex);
-              //if (Node::ChecksumEnabled ())
-                //{
-                  //ipHeader.EnableChecksum ();
-                //}
+              if (Node::ChecksumEnabled ())
+                {
+                  ipHeader.EnableChecksum ();
+                }
               packetCopy->AddHeader (ipHeader);
 
  if (m_netfilter != 0)
@@ -820,9 +831,9 @@ if (m_netfilter != 0)
           Ptr<Packet> packetCopy = packet->Copy ();
           //std::cout<<"AddHeader in Local Out Hook"; 
           if (Node::ChecksumEnabled ())
-                {
-                  ipHeader.EnableChecksum ();
-                }
+            {
+              ipHeader.EnableChecksum ();
+            }
           packetCopy->AddHeader (ipHeader);
           Verdicts_t verdict = (Verdicts_t) m_netfilter->ProcessHook (PF_INET, NF_INET_LOCAL_OUT, packetCopy, 0, device);
           if (verdict == NF_DROP)
@@ -835,6 +846,10 @@ if (m_netfilter != 0)
 
 
       m_sendOutgoingTrace (ipHeader, packet, interface);
+      if (Node::ChecksumEnabled ())
+        {
+          ipHeader.EnableChecksum ();
+        }
       SendRealOut (route, packet->Copy (), ipHeader);
       return; 
     } 
@@ -861,9 +876,9 @@ if (m_netfilter != 0)
       Ptr<Packet> packetCopy = packet->Copy ();
       //std::cout<<"AddHeader in SendCase5"; 
       if (Node::ChecksumEnabled ())
-                {
-                  ipHeader.EnableChecksum ();
-                }
+        {
+          ipHeader.EnableChecksum ();
+        }
       packetCopy->AddHeader (ipHeader);
       Verdicts_t verdict = (Verdicts_t) m_netfilter->ProcessHook (PF_INET, NF_INET_LOCAL_OUT, packetCopy, 0, device);
       if (verdict == NF_DROP)
@@ -888,6 +903,10 @@ if (m_netfilter != 0)
     {
       int32_t interface = GetInterfaceForDevice (newRoute->GetOutputDevice ());
       m_sendOutgoingTrace (ipHeader, packet, interface);
+      if (Node::ChecksumEnabled ())
+        {
+          ipHeader.EnableChecksum ();
+        }
       SendRealOut (newRoute, packet->Copy (), ipHeader);
     }
   else
@@ -967,7 +986,11 @@ if (m_netfilter != 0)
       if (verdict == NF_DROP)
         {
           NS_LOG_DEBUG ("NF_INET_POST_ROUTING packet not accepted");
-Ipv4Header ipH = ipHeader;
+          Ipv4Header ipH = ipHeader;
+          if (Node::ChecksumEnabled ())
+            {
+              ipH.EnableChecksum ();
+            }
           packet->RemoveHeader (ipH);
           int32_t interfacePkt = GetInterfaceForDevice (outDev);
           m_dropTrace (ipH, packet, DROP_NF_DROP, m_node->GetObject<Ipv4> (), interfacePkt);
@@ -1017,6 +1040,10 @@ Ipv4Header ipH = ipHeader;
         {
           NS_LOG_LOGIC ("Dropping -- outgoing interface is down: " << route->GetGateway ());
           Ipv4Header ipHeader;
+          if (Node::ChecksumEnabled ())
+            {
+              ipHeader.EnableChecksum ();
+            }
           packet->RemoveHeader (ipHeader);
           m_dropTrace (ipHeader, packet, DROP_INTERFACE_DOWN, m_node->GetObject<Ipv4> (), interface);
         }
@@ -1047,6 +1074,10 @@ Ipv4Header ipH = ipHeader;
         {
           NS_LOG_LOGIC ("Dropping -- outgoing interface is down: " << ipHeader.GetDestination ());
           Ipv4Header ipHeader;
+          if (Node::ChecksumEnabled ())
+            {
+              ipHeader.EnableChecksum ();
+            }
           packet->RemoveHeader (ipHeader);
           m_dropTrace (ipHeader, packet, DROP_INTERFACE_DOWN, m_node->GetObject<Ipv4> (), interface);
         }
@@ -1083,6 +1114,10 @@ Ipv4L3Protocol::IpMulticastForward (Ptr<Ipv4MulticastRoute> mrtentry, Ptr<const 
       rtentry->SetDestination (h.GetDestination ());
       rtentry->SetGateway (Ipv4Address::GetAny ());
       rtentry->SetOutputDevice (GetNetDevice (interfaceId));
+      if (Node::ChecksumEnabled ())
+        {
+          h.EnableChecksum ();
+        }
       SendRealOut (rtentry, packet, h);
       continue;
     }
@@ -1114,6 +1149,10 @@ Ipv4L3Protocol::IpForward (Ptr<Ipv4Route> rtentry, Ptr<const Packet> p, const Ip
       return;
     }
   m_unicastForwardTrace (ipHeader, packet, interface);
+  if (Node::ChecksumEnabled ())
+    {
+      ipHeader.EnableChecksum ();
+    }
   SendRealOut (rtentry, packet, ipHeader);
 }
 
@@ -1122,15 +1161,18 @@ Ipv4L3Protocol::LocalDeliver (Ptr<const Packet> packet, Ipv4Header const&ip, uin
 {
   NS_LOG_FUNCTION (this << packet << &ip << iif);
 
- Ptr<Packet> p = packet->Copy (); // need to pass a non-const packet up
+  Ptr<Packet> p = packet->Copy (); // need to pass a non-const packet up
   Ipv4Header ipHeader = ip;
   Ptr<Packet> pkt = packet->Copy ();
-
   Ptr<Packet> p1 = packet->Copy (); // need to pass a non-const packet up
 
 
-TcpHeader tcpheader; 
-p1->RemoveHeader(tcpheader);
+  TcpHeader tcpheader; 
+  if (Node::ChecksumEnabled ())
+    {
+      tcpheader.EnableChecksums ();
+    }
+  p1->RemoveHeader(tcpheader);
 //std::cout<<"\n";
 //std::cout<<"At time " << Simulator::Now ().GetSeconds ()<<" s ";
 //std::cout<<ipHeader.GetDestination()<<" is receiving packet with Sequence number ";
@@ -1139,7 +1181,7 @@ p1->RemoveHeader(tcpheader);
 
 
 
-Ptr<NetDevice> device = GetNetDevice(iif);
+  Ptr<NetDevice> device = GetNetDevice(iif);
  
   pkt->AddHeader(ip);
   if (m_netfilter != 0)
@@ -1150,6 +1192,10 @@ Ptr<NetDevice> device = GetNetDevice(iif);
       if (verdict == NF_DROP)
         {
           NS_LOG_DEBUG ("NF_INET_LOCAL_IN packet not accepted");
+          if (Node::ChecksumEnabled ())
+            {
+              ipHeader.EnableChecksum ();
+            }
           pkt->RemoveHeader (ipHeader);
           int32_t interfacePkt = GetInterfaceForDevice (device);
           m_dropTrace (ipHeader, pkt, DROP_NF_DROP, m_node->GetObject<Ipv4> (), interfacePkt);
@@ -1485,6 +1531,10 @@ Ipv4L3Protocol::DoFragmentation (Ptr<Packet> packet, uint32_t outIfaceMtu, std::
   Ipv4Header ipv4Header;
   
   //std::cout<<"In Do Fragmentation()";
+  if (Node::ChecksumEnabled ())
+    {
+      ipv4Header.EnableChecksum ();
+    }
   p->RemoveHeader (ipv4Header);
 
   NS_ASSERT_MSG( (ipv4Header.GetSerializedSize() == 5*4),

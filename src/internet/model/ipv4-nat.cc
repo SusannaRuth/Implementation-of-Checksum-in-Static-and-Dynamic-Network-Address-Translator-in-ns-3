@@ -340,6 +340,7 @@ Ipv4Nat::DoNatPreRouting (Hooks_t hookNumber, Ptr<Packet> p,
                           Ptr<NetDevice> in, Ptr<NetDevice> out, ContinueCallback& ccb)
 {
   NS_LOG_FUNCTION (this << p << hookNumber << in << out);
+ 
   value=false;
 
   if (m_ipv4 == 0)
@@ -376,10 +377,6 @@ Ipv4Nat::DoNatPreRouting (Hooks_t hookNumber, Ptr<Packet> p,
             {
               NS_LOG_DEBUG ("Rule match with a non-port-specific rule");
               ipHeader.SetDestination ((*i).GetLocalIp ());
-              if (Node::ChecksumEnabled ())
-                {
-                  ipHeader.EnableChecksum ();
-                }
               p->AddHeader (ipHeader);
               value=true;
               return NF_ACCEPT;
@@ -403,24 +400,16 @@ Ipv4Nat::DoNatPreRouting (Hooks_t hookNumber, Ptr<Packet> p,
                       tcpHeader.SetDestinationPort ((*i).GetLocalPort ());
                       if (Node::ChecksumEnabled ())
                         {
-                          tcpHeader.EnableChecksums ();
+                          tcpHeader.InitializeChecksum (ipHeader.GetSource(),(*i).GetLocalIp (),6);
                         }
                       p->AddHeader (tcpHeader);
  
                       ipHeader.SetDestination ((*i).GetLocalIp ());
-                      if (Node::ChecksumEnabled ())
-                        {
-                          ipHeader.EnableChecksum ();
-                        }
                       p->AddHeader (ipHeader);
                       value=true;
 
                       return NF_ACCEPT;
 
-                    }
-                  if (Node::ChecksumEnabled ())
-                    {
-                      tcpHeader.EnableChecksums ();
                     }
                   p->AddHeader (tcpHeader);
                 }
@@ -441,7 +430,6 @@ Ipv4Nat::DoNatPreRouting (Hooks_t hookNumber, Ptr<Packet> p,
                       
                       if (Node::ChecksumEnabled ())
                         {
-                          udpHeader.EnableChecksums ();
                           udpHeader.InitializeChecksum (ipHeader.GetSource(),(*i).GetLocalIp (),17);
                           udpHeader.ForceChecksum(0);
                           udpHeader.ForcePayloadSize(0);
@@ -449,18 +437,10 @@ Ipv4Nat::DoNatPreRouting (Hooks_t hookNumber, Ptr<Packet> p,
                       p->AddHeader (udpHeader);
 
                       ipHeader.SetDestination ((*i).GetLocalIp ());
-                      if (Node::ChecksumEnabled ())
-                        {
-                          ipHeader.EnableChecksum ();
-                        }
                       p->AddHeader (ipHeader);
                       value=true;
 
                       return NF_ACCEPT;
-                    }
-                  if (Node::ChecksumEnabled ())
-                    {
-                      udpHeader.EnableChecksums ();
                     }
                   p->AddHeader (udpHeader);
                 }
@@ -490,10 +470,6 @@ Ipv4Nat::DoNatPreRouting (Hooks_t hookNumber, Ptr<Packet> p,
             {
               NS_LOG_DEBUG ("Rule match with a non-port-specific rule");
               ipHeader.SetDestination ((*i).GetLocalAddress ());
-              if (Node::ChecksumEnabled ())
-                {
-                  ipHeader.EnableChecksum ();
-                }
               p->AddHeader (ipHeader);
               value=true;
               return NF_ACCEPT;
@@ -517,20 +493,12 @@ Ipv4Nat::DoNatPreRouting (Hooks_t hookNumber, Ptr<Packet> p,
                       tcpHeader.SetDestinationPort ((*i).GetLocalPort());
                       if (Node::ChecksumEnabled ())
                         {
-                          tcpHeader.EnableChecksums ();
+                          tcpHeader.InitializeChecksum (ipHeader.GetSource(),(*i).GetLocalAddress (),6);
                         }
                       p->AddHeader (tcpHeader);
-                      if (Node::ChecksumEnabled ())
-                        {
-                          ipHeader.EnableChecksum ();
-                        }
                       p->AddHeader (ipHeader);
                       value=true;
                       return NF_ACCEPT;
-                    }
-                  if (Node::ChecksumEnabled ())
-                    {
-                      tcpHeader.EnableChecksums ();
                     }
                   p->AddHeader (tcpHeader);
                 }
@@ -551,24 +519,15 @@ Ipv4Nat::DoNatPreRouting (Hooks_t hookNumber, Ptr<Packet> p,
                        
                       if (Node::ChecksumEnabled ())
                         {
-                          udpHeader.EnableChecksums ();
                           udpHeader.InitializeChecksum (ipHeader.GetSource(),(*i).GetLocalAddress (),17);
                           udpHeader.ForceChecksum(0);
                           udpHeader.ForcePayloadSize(0);
                         }
                       p->AddHeader (udpHeader);
-                      if (Node::ChecksumEnabled ())
-                        {
-                          ipHeader.EnableChecksum ();
-                        }
                       p->AddHeader (ipHeader);
                       value=true;
                       return NF_ACCEPT;
                      
-                    }
-                  if (Node::ChecksumEnabled ())
-                    {
-                      udpHeader.EnableChecksums ();
                     }
                   p->AddHeader (udpHeader);
 
@@ -580,10 +539,6 @@ Ipv4Nat::DoNatPreRouting (Hooks_t hookNumber, Ptr<Packet> p,
         //std::cout<<ipHeader.GetDestination()<<"\n\n";
     }
   //std::cout<<ipHeader.GetDestination()<<"\n\n";
-  if (Node::ChecksumEnabled ())
-    {
-      ipHeader.EnableChecksum ();
-    }
   p->AddHeader (ipHeader);
   // std::cout<<"Add header in donatprerouting for the first time";
 
@@ -638,10 +593,6 @@ Ipv4Nat::DoNatPostRouting (Hooks_t hookNumber, Ptr<Packet> p,
             {
               NS_LOG_DEBUG ("Rule match with a non-port-specific rule");
               ipHeader.SetSource ((*i).GetGlobalIp ());
-              if (Node::ChecksumEnabled ())
-                {
-                  ipHeader.EnableChecksum ();
-                }
               p->AddHeader (ipHeader);
 
               return NF_ACCEPT;
@@ -664,20 +615,12 @@ Ipv4Nat::DoNatPostRouting (Hooks_t hookNumber, Ptr<Packet> p,
                       tcpHeader.SetSourcePort ((*i).GetGlobalPort ());
                       if (Node::ChecksumEnabled ())
                         {
-                          tcpHeader.EnableChecksums ();
+                          tcpHeader.InitializeChecksum ((*i).GetGlobalIp (),ipHeader.GetDestination(),6);
                         }
                       p->AddHeader (tcpHeader);
                       ipHeader.SetSource ((*i).GetGlobalIp ());
-                      if (Node::ChecksumEnabled ())
-                        {
-                          ipHeader.EnableChecksum ();
-                        }
                       p->AddHeader (ipHeader);
                       return NF_ACCEPT;
-                    }
-                  if (Node::ChecksumEnabled ())
-                    {
-                      tcpHeader.EnableChecksums ();
                     }
                   p->AddHeader (tcpHeader);
                 }
@@ -694,29 +637,19 @@ Ipv4Nat::DoNatPostRouting (Hooks_t hookNumber, Ptr<Packet> p,
                   p->RemoveHeader (udpHeader);
                   if (udpHeader.GetSourcePort () == (*i).GetLocalPort ())
                     {
-                      udpHeader.SetSourcePort ((*i).GetGlobalPort ());
-                     
+                      udpHeader.SetSourcePort ((*i).GetGlobalPort ());          
                       if (Node::ChecksumEnabled ())
                         {
-                          udpHeader.EnableChecksums ();
                           udpHeader.InitializeChecksum ((*i).GetGlobalIp (),ipHeader.GetDestination(),17);
                           udpHeader.ForceChecksum(0);
                           udpHeader.ForcePayloadSize(0);
                         }
-                      std::cout<<"Calling add header in postrouting";
+                      
                       p->AddHeader (udpHeader);
                       
                       ipHeader.SetSource ((*i).GetGlobalIp ());
-                      if (Node::ChecksumEnabled ())
-                        {
-                          ipHeader.EnableChecksum ();
-                        }
                       p->AddHeader (ipHeader);
                       return NF_ACCEPT;
-                    }
-                  if (Node::ChecksumEnabled ())
-                    {
-                      udpHeader.EnableChecksums ();
                     }
                   p->AddHeader (udpHeader);
                 }
@@ -741,10 +674,6 @@ Ipv4Nat::DoNatPostRouting (Hooks_t hookNumber, Ptr<Packet> p,
             {
               NS_LOG_DEBUG ("Rule match with a non-port-specific rule");
               ipHeader.SetSource ((*i).GetGlobalAddress ());
-              if (Node::ChecksumEnabled ())
-                {
-                  ipHeader.EnableChecksum ();
-                }
               p->AddHeader (ipHeader);
 
               return NF_ACCEPT;
@@ -765,20 +694,12 @@ Ipv4Nat::DoNatPostRouting (Hooks_t hookNumber, Ptr<Packet> p,
                       tcpHeader.SetSourcePort ((*i).GetTranslatedPort ());
                       if (Node::ChecksumEnabled ())
                         {
-                          tcpHeader.EnableChecksums ();
+                          tcpHeader.InitializeChecksum ((*i).GetGlobalAddress (),ipHeader.GetDestination(),6);
                         }
                       p->AddHeader (tcpHeader);
                       ipHeader.SetSource ((*i).GetGlobalAddress()); //changes made
-                      if (Node::ChecksumEnabled ())
-                        {
-                          ipHeader.EnableChecksum ();
-                        }
                       p->AddHeader (ipHeader);
                       return NF_ACCEPT;
-                    }
-                  if (Node::ChecksumEnabled ())
-                    {
-                      tcpHeader.EnableChecksums ();
                     }
                   p->AddHeader (tcpHeader);
                 }
@@ -795,23 +716,14 @@ Ipv4Nat::DoNatPostRouting (Hooks_t hookNumber, Ptr<Packet> p,
                       udpHeader.SetSourcePort ((*i).GetTranslatedPort());              
                       if (Node::ChecksumEnabled ())
                         {
-                          udpHeader.EnableChecksums ();
                           udpHeader.InitializeChecksum ((*i).GetGlobalAddress (),ipHeader.GetDestination(),17);
                           udpHeader.ForceChecksum(0);
                           udpHeader.ForcePayloadSize(0);
                         }
                       p->AddHeader (udpHeader);
-                      ipHeader.SetSource ((*i).GetGlobalAddress());   //changes made  
-                      if (Node::ChecksumEnabled ())
-                        {
-                          ipHeader.EnableChecksum ();
-                        }         
+                      ipHeader.SetSource ((*i).GetGlobalAddress());   //changes made          
                       p->AddHeader (ipHeader);
                       return NF_ACCEPT;
-                    }
-                  if (Node::ChecksumEnabled ())
-                    {
-                      udpHeader.EnableChecksums ();                  
                     }
                   p->AddHeader (udpHeader);
 
@@ -835,10 +747,6 @@ Ipv4Nat::DoNatPostRouting (Hooks_t hookNumber, Ptr<Packet> p,
               port=GetNewOutsidePort();
               if(port==0)
                 {         
-                  if (Node::ChecksumEnabled ())
-                    {
-                      ipHeader.EnableChecksum ();
-                    }
                   p->AddHeader (ipHeader);
                   return NF_DROP; 
                 }
@@ -858,17 +766,13 @@ Ipv4Nat::DoNatPostRouting (Hooks_t hookNumber, Ptr<Packet> p,
                   tcpHeader.SetSourcePort (port);
                   if (Node::ChecksumEnabled ())
                     {
-                      tcpHeader.EnableChecksums ();
+                      tcpHeader.InitializeChecksum (global_ip,ipHeader.GetDestination(),6);
                     }
                   p->AddHeader (tcpHeader);
               
                   Ipv4DynamicNatTuple natuple (srcAddress,global_ip,GetCurrentPort (),locport);
 
                   m_dynatuple.push_front (natuple);
-                  if (Node::ChecksumEnabled ())
-                    {
-                      ipHeader.EnableChecksum ();
-                    }
                   p->AddHeader (ipHeader);
                         
      
@@ -888,7 +792,6 @@ Ipv4Nat::DoNatPostRouting (Hooks_t hookNumber, Ptr<Packet> p,
                   
                   if (Node::ChecksumEnabled ())
                     {
-                      udpHeader.EnableChecksums ();
                       udpHeader.InitializeChecksum (global_ip,ipHeader.GetDestination(),17);
                       udpHeader.ForceChecksum(0);
                       udpHeader.ForcePayloadSize(0);
@@ -897,10 +800,6 @@ Ipv4Nat::DoNatPostRouting (Hooks_t hookNumber, Ptr<Packet> p,
                   p->AddHeader (udpHeader);
                   Ipv4DynamicNatTuple natuple (srcAddress,global_ip,GetCurrentPort (), locport);
                   m_dynatuple.push_front (natuple);
-                  if (Node::ChecksumEnabled ())
-                    {
-                      ipHeader.EnableChecksum ();
-                    }
 
                   p->AddHeader (ipHeader);
 
@@ -911,10 +810,6 @@ Ipv4Nat::DoNatPostRouting (Hooks_t hookNumber, Ptr<Packet> p,
 
         }//for loop ends
         
-    }
-  if (Node::ChecksumEnabled ())
-    {
-      ipHeader.EnableChecksum ();
     }
   p->AddHeader (ipHeader);
 
