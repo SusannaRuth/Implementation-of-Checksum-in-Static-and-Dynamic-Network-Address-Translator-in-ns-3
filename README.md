@@ -25,8 +25,18 @@ To enable checksum, the attribute ChecksumEnabled must be set to true, as shown 
 Example programs for Static and Dynamic NAT have been provided in
 
 `scratch/ipv4-static-nat-example.cc`
+
 `scratch/ipv4-dynamic-nat-example.cc`
+
 `scratch/ipv4-static-nat-tcp-example.cc`
+
+and should be executed as
+
+`./waf --run "ipv4-static-nat-example"`
+
+`./waf --run "ipv4-dynamic-nat-example"`
+
+`./waf --run "ipv4-static-nat-tcp-example"`
 
 ###References:
 [1] https://www.ietf.org/rfc/rfc1631.txt
