@@ -25,9 +25,7 @@ To enable checksum, the attribute ChecksumEnabled must be set to true, as shown 
 Example programs for Static and Dynamic NAT have been provided in
 
 `scratch/ipv4-static-nat-example.cc`
-
 `scratch/ipv4-dynamic-nat-example.cc`
-
 `scratch/ipv4-static-nat-tcp-example.cc`
 
 ###References:
